@@ -24,12 +24,12 @@ abstract class Api
      * case, an integer ID for the resource. eg: /<endpoint>/<verb>/<arg0>/<arg1>
      * or /<endpoint>/<arg0>
      */
-    protected $args = Array();
+    protected $args = array();
     /**
      * Property: file
      * Stores the input of the PUT request
      */
-    protected $file = Null;
+    protected $file = null;
 
     /**
      * Constructor: __construct
@@ -49,7 +49,7 @@ abstract class Api
         if ($this->method == 'POST' && array_key_exists('HTTP_X_HTTP_METHOD', $_SERVER)) {
             if ($_SERVER['HTTP_X_HTTP_METHOD'] == 'DELETE') {
                 $this->method = 'DELETE';
-            } else if ($_SERVER['HTTP_X_HTTP_METHOD'] == 'PUT') {
+            } elseif ($_SERVER['HTTP_X_HTTP_METHOD'] == 'PUT') {
                 $this->method = 'PUT';
             } else {
                 throw new Exception("Unexpected Header");
@@ -122,7 +122,7 @@ abstract class Api
      */
     private function _cleanInputs($data)
     {
-        $clean_input = Array();
+        $clean_input = array();
         if (is_array($data)) {
             foreach ($data as $k => $v) {
                 $clean_input[$k] = $this->_cleanInputs($v);
@@ -148,5 +148,4 @@ abstract class Api
         );
         return ($status[$code]) ? $status[$code] : $status[500];
     }
-
 }
