@@ -68,9 +68,9 @@ class RedisApi extends Api
                     }
                     break;
                 case 'DELETE':
-                    $result = $this->redisClient->rawCommand("exists", ["DocumentKey:$key"]);
-                    if ($result) {
-                        $this->redisClient->delete("DocumentKey:$key");
+                    $exists = $this->redisClient->rawCommand("exists", ["DocumentKey:$key"]);
+                    if ($exists) {
+                        $this->deleteAllWordsAndDocument($key);
                         $this->setHeadAndStatus("Document with ID $key deleted", 201);
                     } else {
                         $this->setHeadAndStatus("Document with ID $key doesn't exists", 404);
@@ -104,7 +104,7 @@ class RedisApi extends Api
                     $wordKeys = $this->redisClient->rawCommand('sMembers', [$searchWord]);
                     $commonKeys = array_intersect($commonKeys, $wordKeys);
                 }
-                $this->setHeadAndStatus($commonKeys, 200);
+                $this->setHeadAndStatus(array_values($commonKeys), 200);
             } else {
                 $this->setHeadAndStatus("No search trasnmited", 400);
             }
@@ -143,15 +143,25 @@ class RedisApi extends Api
         }
     }
 
+    /**
+     * @param $data
+     * @param $key
+     */
     private function saveAllWordsAndDocument($data, $key)
     {
         $words = $this->textToArray($data);
         foreach ($words as $word) {
-            $this->redisClient->rawCommand("sAdd", ["word:$word", $key]);
+            if (strlen($word) > 0) {
+                $this->redisClient->rawCommand("sAdd", ["word:$word", $key]);
+            }
         }
         $this->redisClient->rawCommand("set", ["DocumentKey:$key", $data]);
     }
 
+    /**
+     * @param $data
+     * @return array
+     */
     private function textToArray($data)
     {
 
@@ -164,6 +174,10 @@ class RedisApi extends Api
         return $words;
     }
 
+    /**
+     * @param $head
+     * @param $status
+     */
     private function setHeadAndStatus($head, $status)
     {
         $this->head = $head;
